@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fpmobilelaptop/dashboard_page.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 // ignore: camel_case_types
 class LoginPage extends StatefulWidget {
@@ -11,6 +12,7 @@ class LoginPage extends StatefulWidget {
 
 // ignore: camel_case_types
 class _LoginPageState extends State<LoginPage> {
+  final FirebaseMessaging fc = FirebaseMessaging.instance;
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
@@ -91,7 +93,11 @@ class _LoginPageState extends State<LoginPage> {
           ),
         ));
   }
+  void configureCallbacks() {
+  fc.sub
 }
+}
+
 
 class TextFieldContainer extends StatelessWidget {
   final Widget child;

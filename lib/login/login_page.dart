@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fpmobilelaptop/dashboard_page.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:fpmobilelaptop/services/local_notification_service.dart';
 
 // ignore: camel_case_types
 class LoginPage extends StatefulWidget {
@@ -12,7 +13,36 @@ class LoginPage extends StatefulWidget {
 
 // ignore: camel_case_types
 class _LoginPageState extends State<LoginPage> {
-  final FirebaseMessaging fc = FirebaseMessaging.instance;
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+
+    LocalNotificationService.initialize(context);
+
+    FirebaseMessaging.instance.getInitialMessage().then((message) {
+      if (message != null) {
+        final routeFromMessage = message.data["route"];
+        Navigator.of(context).pushNamed(routeFromMessage);
+      }
+    });
+
+    ///forground
+    FirebaseMessaging.onMessage.listen((message) {
+      if (message.notification != null) {
+        print(message.notification!.body);
+        print(message.notification!.title);
+      }
+      LocalNotificationService.display(message);
+    });
+
+    //app berjalan di background & user tap notif diarahkan ke route
+    FirebaseMessaging.onMessageOpenedApp.listen((message) {
+      final routeFromMessage = message.data["route"];
+      Navigator.of(context).pushNamed(routeFromMessage);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
@@ -93,11 +123,7 @@ class _LoginPageState extends State<LoginPage> {
           ),
         ));
   }
-  void configureCallbacks() {
-  fc.sub
 }
-}
-
 
 class TextFieldContainer extends StatelessWidget {
   final Widget child;

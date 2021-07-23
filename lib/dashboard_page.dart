@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:fpmobilelaptop/agent_page.dart';
+import 'package:fpmobilelaptop/event_page.dart';
 import 'package:fpmobilelaptop/login/login_page.dart';
 import 'package:google_fonts/google_fonts.dart';
+
 
 // ignore: camel_case_types
 class dashboardpage extends StatefulWidget {
@@ -146,10 +148,9 @@ class _dashboardpageState extends State<dashboardpage> {
                 // ElevatedButton(onPressed: () {}, child: DecoratedBox())
                 ListTile(
                     onTap: () {
-                      return Navigator.pop(context,
-                          MaterialPageRoute(builder: (context) {
-                        return LoginPage();
-                      }));
+                      Navigator.push(context, MaterialPageRoute(builder: (context) {
+                    return event_page();
+                  }));
                     },
                     leading: Container(
                       width: 100,

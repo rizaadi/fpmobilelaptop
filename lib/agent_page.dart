@@ -1,365 +1,173 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:fpmobilelaptop/char_page.dart';
+import 'package:fpmobilelaptop/model/agent/agent.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:fpmobilelaptop/valorantapi.dart';
 
 class AgentPage extends StatelessWidget {
-  const AgentPage({Key? key}) : super(key: key);
-
-  // NEXT PAKAI ITERASI FOREACH<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  // EXTRACT METHOD
+  ValorantAPI service = ValorantAPI();
+  final List roleAgent = [
+    "Controller",
+    "Duelist",
+    "Initiator",
+    "Sentinel",
+  ];
+  final List roleAgentAsset = [
+    "https://media.valorant-api.com/agents/roles/4ee40330-ecdd-4f2f-98a8-eb1243428373/displayicon.png",
+    "https://media.valorant-api.com/agents/roles/dbe8757e-9e92-4ed4-b39f-9dfc589691d4/displayicon.png",
+    "https://media.valorant-api.com/agents/roles/1b47567f-8f7b-444b-aae3-b0c634622d10/displayicon.png",
+    "https://media.valorant-api.com/agents/roles/5fc02f99-4091-4486-a531-98459a3e95e9/displayicon.png",
+  ];
+  // const AgentPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        backgroundColor: Color(0xff0F1722),
-        body: Stack(
-          children: <Widget>[
-            ListView(
-              children: <Widget>[
-                Container(
-                  padding: EdgeInsets.only(top: 120, left: 20, right: 20),
-                  child: Text(
-                    "AGENT",
-                    style: GoogleFonts.roboto(
-                        fontSize: 48,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xffD3D3D3)),
+    return Scaffold(
+      backgroundColor: Color(0xff0F1722),
+      body: FutureBuilder(
+        future: service.getAllAgents(),
+        builder: (context, AsyncSnapshot<List<Agent>> snapshot) {
+          if (snapshot.hasData) {
+            return SafeArea(
+              child: ListView(
+                shrinkWrap: false,
+                physics: ScrollPhysics(),
+                children: <Widget>[
+                  new SizedBox(height: 20.0),
+                  Container(
+                    padding: EdgeInsets.only(top: 20, left: 20, right: 20),
+                    child: Text(
+                      "AGENT",
+                      style: GoogleFonts.roboto(
+                          fontSize: 48,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xffD3D3D3)),
+                    ),
                   ),
-                ),
-                Container(
-                  padding: EdgeInsets.only(left: 20, top: 10),
-                  child: Row(
-                    children: <Widget>[
-                      Container(
-                        height: 20,
-                        width: 20,
-                        decoration: BoxDecoration(
-                          image: DecorationImage(
-                              fit: BoxFit.contain,
-                              image:
-                                  AssetImage("images/DuelistClassSymbol.png")),
-                        ),
-                      ),
-                      Container(
-                        padding: EdgeInsets.only(left: 10),
-                        child: Text(
-                          "DUELIST",
-                          style: GoogleFonts.roboto(
-                              fontSize: 24,
-                              fontWeight: FontWeight.w500,
-                              color: Color(0xffD3D3D3)),
-                        ),
-                      )
-                    ],
+                  new Container(
+                    padding: EdgeInsets.only(top: 20, left: 20, right: 20),
+                    child: new ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: roleAgent.length,
+                      physics: ScrollPhysics(),
+                      itemBuilder: (context, index) {
+                        return new Column(
+                          children: <Widget>[
+                            new Container(
+                              height: 50.0,
+                              child: new Row(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: <Widget>[
+                                  Container(
+                                    height: 20,
+                                    width: 20,
+                                    child: new Image.network(
+                                      roleAgentAsset[index],
+                                      loadingBuilder: (BuildContext context,
+                                          Widget child,
+                                          ImageChunkEvent? loadingProgress) {
+                                        if (loadingProgress == null) {
+                                          return child;
+                                        }
+                                        return Center(
+                                          child: CircularProgressIndicator(
+                                            value: loadingProgress
+                                                        .expectedTotalBytes !=
+                                                    null
+                                                ? loadingProgress
+                                                        .cumulativeBytesLoaded /
+                                                    loadingProgress
+                                                        .expectedTotalBytes!
+                                                : null,
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                  new Padding(
+                                      padding:
+                                          const EdgeInsets.only(right: 5.0)),
+                                  new Text(roleAgent[index],
+                                      style: new TextStyle(
+                                          fontSize: 20.0, color: Colors.white)),
+                                ],
+                              ),
+                            ),
+                            listagentConta(
+                              snapshot,
+                              roleAgent[index],
+                            ),
+                            new SizedBox(height: 20.0),
+                          ],
+                        );
+                      },
+                    ),
                   ),
+                ],
+              ),
+            );
+          } else {
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+        },
+      ),
+    );
+  }
+
+  Container listagentConta(AsyncSnapshot<List<Agent>> snapshot, roleAgent) {
+    return new Container(
+      height: 100,
+      child: new ListView.builder(
+        shrinkWrap: true,
+        scrollDirection: Axis.horizontal,
+        itemCount: snapshot.data!.length,
+        itemBuilder: (context, index) {
+          String name = snapshot.data![index].role!.displayName.toString();
+          // print(name + "----->" + roleAgent);
+          if (name == roleAgent) {
+            return cardAgent(context, snapshot.data![index]);
+          }
+          return Container();
+        },
+      ),
+    );
+  }
+
+  Card cardAgent(BuildContext context, Agent agent) {
+    return new Card(
+      color: Color(0xff0F1722),
+      elevation: 5.0,
+      child: InkWell(
+        onTap: () {
+          Navigator.push(context, MaterialPageRoute(builder: (context) {
+            return CharPage(uuidAgent: agent.uuid.toString());
+          }));
+        },
+        child: new Container(
+          height: 84,
+          width: MediaQuery.of(context).size.width / 4,
+          alignment: Alignment.center,
+          child: Image.network(
+            agent.displayIcon,
+            loadingBuilder: (BuildContext context, Widget child,
+                ImageChunkEvent? loadingProgress) {
+              if (loadingProgress == null) {
+                return child;
+              }
+              return Center(
+                child: CircularProgressIndicator(
+                  value: loadingProgress.expectedTotalBytes != null
+                      ? loadingProgress.cumulativeBytesLoaded /
+                          loadingProgress.expectedTotalBytes!
+                      : null,
                 ),
-                Container(
-                  padding: EdgeInsets.only(left: 20, right: 20),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: <Widget>[
-                      Card(
-                        color: Color(0xff0F1722),
-                        child: InkWell(
-                          onTap: () {
-                            Navigator.push(context,
-                                MaterialPageRoute(builder: (context) {
-                              return CharPage();
-                            }));
-                          },
-                          child: SizedBox(
-                            height: 84,
-                            width: 84,
-                            child: Image.asset("images/char-jett.png"),
-                          ),
-                        ),
-                      ),
-                      Card(
-                        color: Color(0xff0F1722),
-                        child: InkWell(
-                          onTap: () {},
-                          child: SizedBox(
-                            height: 84,
-                            width: 84,
-                            child: Image.asset('images/char-phoenix.png'),
-                          ),
-                        ),
-                      ),
-                      Card(
-                        color: Color(0xff0F1722),
-                        child: InkWell(
-                          onTap: () {},
-                          child: SizedBox(
-                            height: 84,
-                            width: 84,
-                            child: Image.asset('images/char-raze.png'),
-                          ),
-                        ),
-                      ),
-                      Card(
-                        color: Color(0xff0F1722),
-                        child: InkWell(
-                          onTap: () {},
-                          child: SizedBox(
-                            height: 84,
-                            width: 84,
-                            child: Image.asset('images/char-reyna.png'),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  padding: EdgeInsets.only(left: 20, top: 10),
-                  child: Row(
-                    children: <Widget>[
-                      Container(
-                        height: 20,
-                        width: 20,
-                        decoration: BoxDecoration(
-                          image: DecorationImage(
-                              fit: BoxFit.contain,
-                              image: AssetImage(
-                                  'images/ControllerClassSymbol.png')),
-                        ),
-                      ),
-                      Container(
-                        padding: EdgeInsets.only(left: 10),
-                        child: Text(
-                          "CONTROLLERS",
-                          style: GoogleFonts.roboto(
-                              fontSize: 24,
-                              fontWeight: FontWeight.w500,
-                              color: Color(0xffD3D3D3)),
-                        ),
-                      )
-                    ],
-                  ),
-                ),
-                Container(
-                  padding: EdgeInsets.only(left: 20, right: 20),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: <Widget>[
-                      Card(
-                        color: Color(0xff0F1722),
-                        child: InkWell(
-                          onTap: () {
-                            Navigator.push(context,
-                                MaterialPageRoute(builder: (context) {
-                              return CharPage();
-                            }));
-                          },
-                          child: SizedBox(
-                            height: 84,
-                            width: 84,
-                            child: Image.asset('images/char-astra.png'),
-                          ),
-                        ),
-                      ),
-                      Card(
-                        color: Color(0xff0F1722),
-                        child: InkWell(
-                          onTap: () {},
-                          child: SizedBox(
-                            height: 84,
-                            width: 84,
-                            child: Image.asset('images/char-brim.png'),
-                          ),
-                        ),
-                      ),
-                      Card(
-                        color: Color(0xff0F1722),
-                        child: InkWell(
-                          onTap: () {},
-                          child: SizedBox(
-                            height: 84,
-                            width: 84,
-                            child: Image.asset('images/char-omen.png'),
-                          ),
-                        ),
-                      ),
-                      Card(
-                        color: Color(0xff0F1722),
-                        child: InkWell(
-                          onTap: () {},
-                          child: SizedBox(
-                            height: 84,
-                            width: 84,
-                            child: Image.asset('images/char-viper.png'),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  padding: EdgeInsets.only(left: 20, top: 10),
-                  child: Row(
-                    children: <Widget>[
-                      Container(
-                        height: 20,
-                        width: 20,
-                        decoration: BoxDecoration(
-                          image: DecorationImage(
-                              fit: BoxFit.contain,
-                              image: AssetImage(
-                                  'images/InitiatorClassSymbol.png')),
-                        ),
-                      ),
-                      Container(
-                        padding: EdgeInsets.only(left: 10),
-                        child: Text(
-                          "INITIATORS",
-                          style: GoogleFonts.roboto(
-                              fontSize: 24,
-                              fontWeight: FontWeight.w500,
-                              color: Color(0xffD3D3D3)),
-                        ),
-                      )
-                    ],
-                  ),
-                ),
-                Container(
-                  padding: EdgeInsets.only(left: 20, right: 20),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: <Widget>[
-                      Card(
-                        color: Color(0xff0F1722),
-                        child: InkWell(
-                          onTap: () {
-                            Navigator.push(context,
-                                MaterialPageRoute(builder: (context) {
-                              return CharPage();
-                            }));
-                          },
-                          child: SizedBox(
-                            height: 84,
-                            width: 84,
-                            child: Image.asset('images/char-breach.png'),
-                          ),
-                        ),
-                      ),
-                      Card(
-                        color: Color(0xff0F1722),
-                        child: InkWell(
-                          onTap: () {},
-                          child: SizedBox(
-                            height: 84,
-                            width: 84,
-                            child: Image.asset('images/char-skye.png'),
-                          ),
-                        ),
-                      ),
-                      Card(
-                        color: Color(0xff0F1722),
-                        child: InkWell(
-                          onTap: () {},
-                          child: SizedBox(
-                            height: 84,
-                            width: 84,
-                            child: Image.asset('images/char-sova.png'),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  padding: EdgeInsets.only(left: 20, top: 10),
-                  child: Row(
-                    children: <Widget>[
-                      Container(
-                        height: 20,
-                        width: 20,
-                        decoration: BoxDecoration(
-                          image: DecorationImage(
-                              fit: BoxFit.contain,
-                              image:
-                                  AssetImage('images/SentinelClassSymbol.png')),
-                        ),
-                      ),
-                      Container(
-                        padding: EdgeInsets.only(left: 10),
-                        child: Text(
-                          "SENTINELS",
-                          style: GoogleFonts.roboto(
-                              fontSize: 24,
-                              fontWeight: FontWeight.w500,
-                              color: Color(0xffD3D3D3)),
-                        ),
-                      )
-                    ],
-                  ),
-                ),
-                Container(
-                  padding: EdgeInsets.only(left: 20, right: 20),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: <Widget>[
-                      Card(
-                        color: Color(0xff0F1722),
-                        child: InkWell(
-                          onTap: () {
-                            Navigator.push(context,
-                                MaterialPageRoute(builder: (context) {
-                              return CharPage();
-                            }));
-                          },
-                          child: SizedBox(
-                            height: 84,
-                            width: 84,
-                            child: Image.asset('images/char-cyper.png'),
-                          ),
-                        ),
-                      ),
-                      Card(
-                        color: Color(0xff0F1722),
-                        child: InkWell(
-                          onTap: () {},
-                          child: SizedBox(
-                            height: 84,
-                            width: 84,
-                            child: Image.asset('images/char-killjoy.png'),
-                          ),
-                        ),
-                      ),
-                      Card(
-                        color: Color(0xff0F1722),
-                        child: InkWell(
-                          onTap: () {},
-                          child: SizedBox(
-                            height: 84,
-                            width: 84,
-                            child: Image.asset('images/char-sage.png'),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            Container(
-                decoration:
-                    BoxDecoration(borderRadius: BorderRadius.circular(50)),
-                padding: EdgeInsets.only(left: 20, top: 70),
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  icon: Icon(Icons.arrow_back_ios_new_rounded),
-                  label: Text(""),
-                  style: ElevatedButton.styleFrom(
-                      primary: Color(0xff1F2C3C),
-                      fixedSize: Size(44, 60),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15))),
-                )),
-          ],
+              );
+            },
+          ),
         ),
       ),
     );

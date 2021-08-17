@@ -3,17 +3,19 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
+// ignore: camel_case_types
 class event_page extends StatefulWidget {
-  const event_page({Key? key}) : super(key: key);
+  final String info;
+  const event_page({Key? key, required this.info}) : super(key: key);
 
   @override
   _event_pageState createState() => _event_pageState();
 }
 
+// ignore: camel_case_types
 class _event_pageState extends State<event_page> {
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     if (Platform.isAndroid) WebView.platform = SurfaceAndroidWebView();
   }
